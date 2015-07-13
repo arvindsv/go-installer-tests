@@ -1,0 +1,231 @@
+Expected directory structure for testing of a new installer. Each installer type or platform under test should have this
+directory structure:
+
+.
+|-- data
+`-- scripts
+    `-- provision
+    |-- install_agent
+    |-- install_server
+    |-- run_on_agent
+    |-- run_on_server
+    |-- upgrade_agent
+    |-- upgrade_server
+    |-- destroy
+
+
+Details:
+
+1. data/
+   =====
+
+   Can have any files in it, which are needed by scripts. This directory will need to be shared with the virtual machines or containers,
+   during provisioning (see below).
+
+
+
+
+2. scripts/
+   ========
+
+   Can have any scripts needed during testing. Will need to have scripts mentioned below, at least. All the scripts below should fail
+   with a non-zero exit code, if something goes wrong.
+
+
+
+
+3. scripts/provision
+   =================
+
+   This script will be run at the beginning of a test run. It is expected to setup the virtual machines or containers needed to run an
+   agent and a server. It does not need to install an agent or server. Usually, it makes sure that Java is installed.
+
+
+   Context provided to this script:
+   --------------------------------
+
+   Command line arguments:
+     1) Port: An unused port on the host, to which port 8153 on the Go Server container should be forwarded.
+
+
+   Expectations from this script:
+   --------------------------------
+
+     1) Will setup VMs or containers needed by the scripts below (could be both server and agent VM or just one).
+
+     2) Will make sure that the hostname "go-server" resolves to the Go Server VM, from the Go Agent VM.
+
+     3) Will ensure that the prerequisites for the agent and server installation are met (Example: Java 7).
+
+     4) Will fail with non-zero exit code if not able to, or something goes wrong.
+
+
+
+
+4. scripts/install_agent
+   =====================
+
+   This script will be run some time after provisioning and will need to install the specified Go Agent.
+
+   Context provided to this script:
+   --------------------------------
+
+   Command line arguments:
+     1) Filename: This is a filename of an agent installer file which will be in the "data/" directory. Example: go-agent-15.1.0.1863-solaris.gz
+
+        It will be ensured that this file will be in the data/ directory. But, the path to the data/ directory will not be part of the argument.
+        It will just have the filename.
+
+
+   Expectations from this script:
+   --------------------------------
+
+     1) Will run the Go Agent installer for the specified agent, in the earlier mentioned provisioned Go Agent VM or container.
+
+     2) Will point the Go Agent to the Go Server (using the hostname "go-server") and will start it.
+
+     3) Will fail with non-zero exit code if not able to, or something goes wrong.
+
+
+
+
+5. scripts/install_server
+   ======================
+
+   This script will be run some time after provisioning and will need to install the specified Go Server.
+
+   Context provided to this script:
+   --------------------------------
+
+   Command line arguments:
+     1) Filename: This is a filename of a server installer file which will be in the "data/" directory. Example: go-server-15.1.0.1863-solaris.gz
+
+        It will be ensured that this file will be in the data/ directory. But, the path to the data/ directory will not be part of the argument.
+        It will just have the filename.
+
+
+   Expectations from this script:
+   --------------------------------
+
+     1) Will run the Go Server installer for the specified server, in the earlier mentioned provisioned Go Server VM or container.
+
+     2) Need not wait for the Go Server to finish starting.
+
+     3) Will fail with non-zero exit code if not able to, or something goes wrong.
+
+
+
+
+6. scripts/run_on_agent
+   ====================
+
+   This script will be run some time after provisioning and will need to be able to run a command on the agent VM or container.
+
+   Context provided to this script:
+   --------------------------------
+
+   Command line arguments: A command, with arguments will be provided to this, as command-line arguments.
+
+
+   Expectations from this script:
+   --------------------------------
+
+     1) Will run the command specified, in the earlier mentioned provisioned Go Agent VM or container.
+
+     2) Will exit with the same code as the command, if the command runs.
+
+     3) Will fail with non-zero exit code if not able to, or something goes wrong.
+
+
+
+
+7. scripts/run_on_server
+   =====================
+
+   This script will be run some time after provisioning and will need to be able to run a command on the server VM or container.
+
+   Context provided to this script:
+   --------------------------------
+
+   Command line arguments: A command, with arguments will be provided to this, as command-line arguments.
+
+
+   Expectations from this script:
+   --------------------------------
+
+     1) Will run the command specified, in the earlier mentioned provisioned Go Server VM or container.
+
+     2) Will exit with the same code as the command, if the command runs.
+
+     3) Will fail with non-zero exit code if not able to, or something goes wrong.
+
+
+
+
+8. scripts/upgrade_agent
+   =====================
+
+   This script will be run some time after provisioning and will need to upgrade an existing Go Agent, using the specified installation file.
+
+   Context provided to this script:
+   --------------------------------
+
+   Command line arguments:
+     1) Filename: This is a filename of the new agent installer file which will be in the "data/" directory. Example: go-agent-15.1.0.1863-solaris.gz
+
+        It will be ensured that this file will be in the data/ directory. But, the path to the data/ directory will not be part of the argument.
+        It will just have the filename.
+
+
+   Expectations from this script:
+   --------------------------------
+
+     1) Will upgrade the Go Agent using the specified installer, in the earlier mentioned provisioned Go Agent VM or container.
+
+     2) Will fail with non-zero exit code if not able to, or something goes wrong.
+
+
+
+
+9. scripts/upgrade_server
+   ======================
+
+   This script will be run some time after provisioning and will need to upgrade an existing Go Server, using the specified installation file.
+
+   Context provided to this script:
+   --------------------------------
+
+   Command line arguments:
+     1) Filename: This is a filename of the new server installer file which will be in the "data/" directory. Example: go-server-15.1.0.1863-solaris.gz
+
+        It will be ensured that this file will be in the data/ directory. But, the path to the data/ directory will not be part of the argument.
+        It will just have the filename.
+
+
+   Expectations from this script:
+   --------------------------------
+
+     1) Will upgrade the Go Server using the specified installer, in the earlier mentioned provisioned Go Server VM or container.
+
+     2) Will fail with non-zero exit code if not able to, or something goes wrong.
+
+
+
+
+10. scripts/destroy
+   ===============
+
+   This script will be run some time after provisioning and will need to destroy all provisioned VMs or containers.
+
+   Context provided to this script:
+   --------------------------------
+
+   None.
+
+   Expectations from this script:
+   --------------------------------
+
+     1) Will bring down all VMs and containers setup in the provision script and destroy them so that they have no effect
+        on other tests.
+
+     2) Will fail with non-zero exit code if not able to, or something goes wrong.

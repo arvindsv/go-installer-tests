@@ -1,0 +1,8 @@
+#!/bin/bash
+
+set -e
+set -o pipefail
+
+if [ "$#" -ne 1 ]; then echo "Usage: $0 forwarded-port-for-go-server" >&2 && exit 1; fi
+
+SERVER_PORT="$1" vagrant up --provider virtualbox

@@ -1,0 +1,9 @@
+#!/bin/bash
+
+set -e
+set -o pipefail
+
+if [ "$#" -ne 1 ]; then echo "Usage: $0 new-package-in-data-dir" >&2 && exit 1; fi
+
+$(dirname $0)/run_on_server sudo bash /scripts/run_in_vm/uninstall_go_component.sh TWSgo-server
+$(dirname $0)/install_server "$1"

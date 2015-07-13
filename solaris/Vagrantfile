@@ -1,0 +1,39 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+VAGRANTFILE_API_VERSION = "2"
+
+server_internal_ip  = "192.168.81.53"
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+  config.vm.define "server" do |server|
+    server.vm.box = "tnarik/solaris10-minimal"
+
+    server.vm.network "forwarded_port", guest: 8153, host: (ENV["SERVER_PORT"] || "8153").to_i, auto_correct: false
+    server.vm.network "private_network", ip: server_internal_ip
+  end
+
+  config.vm.define "agent" do |agent|
+    agent.vm.box = "tnarik/solaris10-minimal"
+    agent.vm.provision "shell", inline: %{
+      echo #{server_internal_ip} go-server >>/etc/hosts
+    }
+  end
+
+  config.vm.synced_folder "data", "/data"
+  config.vm.synced_folder "scripts", "/scripts"
+
+  # config.vm.provider "virtualbox" do |vb|
+  #   vb.customize ["modifyvm", :id, "--memory", "1024"]
+  # end
+
+  # From: https://www.java.com/en/download/manual_java7.jsp
+  config.vm.provision "shell", inline: %{
+    pkgadd -a /scripts/run_in_vm/go-install.response -d http://get.opencsw.org/now all
+    /opt/csw/bin/pkgutil -U
+    /opt/csw/bin/pkgutil -y -i git
+    /opt/csw/bin/pkgutil -y -i jre7
+    echo 'export JAVA_HOME=/opt/csw/java/jre/jre7/' >>/etc/profile
+    echo 'export PATH=$PATH:/opt/csw/java/jre/jre7/bin' >>/etc/profile
+  }
+end

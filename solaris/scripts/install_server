@@ -1,0 +1,6 @@
+#!/bin/bash
+
+set -e
+set -o pipefail
+
+$(dirname $0)/run_on_server sudo bash /scripts/run_in_vm/install_go_component.sh "/data/$1" server
